@@ -18,6 +18,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     const dtyMachinesCollection = client.db("polyspinning").collection("dtyMachines");
     const dtyPresentLotAndTransfer = client.db("polyspinning").collection("presentLotAndTransfer");
+    const dtyMcDetailsFromPresentLot = client.db("polyspinning").collection("dtyMcDetailsFromPresentLot");
 
     app.get("/dtyMachines", async (req, res) => {
         const query = {};
@@ -37,7 +38,7 @@ async function run() {
 
     app.get("/present-lot-and-transfer-area", async (req, res) => {
         // const query = {uploadedAt: }
-        const result = await dtyPresentLotAndTransfer.findOne({}, { sort: { timestampField: -1 } });
+        const result = await dtyPresentLotAndTransfer.findOne({}, { sort: { uploadedAt: -1 } });
         res.send(result);
     })
 
@@ -46,6 +47,29 @@ async function run() {
         const result = await dtyPresentLotAndTransfer.insertOne(excelData);
         console.log(result);
         res.send(result);
+    })
+    app.get("/dty-machine-details-from-present-lot", async (req, res) => {
+        const result = await dtyMcDetailsFromPresentLot.find().toArray();
+        res.send(result);
+    })
+
+    app.put("/dty-machine-details-from-present-lot", async (req, res) => {
+        const oneMCDetails = req.body;
+        console.log(oneMCDetails);
+        const query = { machineNo: oneMCDetails.machineNo };
+        const option = { upsert: true };
+
+        let updatedMCDetails = {};
+        if (oneMCDetails) {
+            for(let key in oneMCDetails){
+                
+            }
+        }
+        // const result = await productsCollection.updateOne(query, updateProduct, option);
+        // res.send(result);
+
+
+        res.send({ m: "api hitt" })
     })
 
 }
