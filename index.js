@@ -30,9 +30,9 @@ async function run() {
     app.get("/dtyMachines/:machineNo", async (req, res) => {
         const machineNo = parseInt(req.params.machineNo);
         const query = { "mcInfo.machineNo": machineNo };
-        console.log(query);
+        // console.log(query);
         const machine = await dtyMachinesCollection.findOne(query);
-        console.log(machine);
+        // console.log(machine);
         res.send(machine);
     });
 
@@ -45,31 +45,47 @@ async function run() {
     app.post("/present-lot-and-transfer-area", async (req, res) => {
         const excelData = req.body;
         const result = await dtyPresentLotAndTransfer.insertOne(excelData);
-        console.log(result);
+        // console.log(result);
         res.send(result);
     })
     app.get("/dty-machine-details-from-present-lot", async (req, res) => {
-        const result = await dtyMcDetailsFromPresentLot.find().toArray();
+        let existingArrWithoutId = [];
+        const existingArr = await dtyMcDetailsFromPresentLot.find().toArray();
+        for (let elem of existingArr) {
+            const { _id, ...rest } = elem;
+            existingArrWithoutId.push(rest);
+        }
+        res.send(existingArrWithoutId);
+    })
+
+    app.post("/dty-machine-details-from-present-lot", async (req, res) => {
+        const newMCDetails = req.body;
+        console.log(newMCDetails);
+        const result = await dtyMcDetailsFromPresentLot.insertOne(newMCDetails);
+        // console.log(result);
         res.send(result);
     })
 
     app.put("/dty-machine-details-from-present-lot", async (req, res) => {
-        const oneMCDetails = req.body;
-        console.log(oneMCDetails);
-        const query = { machineNo: oneMCDetails.machineNo };
+        const { oneMCDetails, changedProps } = req.body;
+        const changedPropsWithoutId = changedProps.filter(element => element !== '_id');
+        // console.log(changedPropsWithoutId);
+        const query = { DTYMCNo: oneMCDetails.DTYMCNo, Side: oneMCDetails.Side };
         const option = { upsert: true };
 
         let updatedMCDetails = {};
         if (oneMCDetails) {
-            for(let key in oneMCDetails){
-                
+            for (let key of changedPropsWithoutId) {
+                // console.log(key);
+                updatedMCDetails[key] = oneMCDetails[key];
             }
         }
-        // const result = await productsCollection.updateOne(query, updateProduct, option);
-        // res.send(result);
+        console.log("updatedMCDetails", updatedMCDetails);
+        const docToUpdate = { $set: updatedMCDetails }
+        const result = await dtyMcDetailsFromPresentLot.updateOne(query, docToUpdate, option);
+        res.send(result);
 
-
-        res.send({ m: "api hitt" })
+        // res.send("hit")
     })
 
 }
