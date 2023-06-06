@@ -19,6 +19,7 @@ async function run() {
     const dtyMachinesCollection = client.db("polyspinning").collection("dtyMachines");
     const dtyPresentLotAndTransfer = client.db("polyspinning").collection("presentLotAndTransfer");
     const dtyMcDetailsFromPresentLot = client.db("polyspinning").collection("dtyMcDetailsFromPresentLot");
+    const poyMcDetailsFromPresentLot = client.db("polyspinning").collection("poyMcDetailsFromPresentLot");
 
     app.get("/dtyMachines", async (req, res) => {
         const query = {};
@@ -51,6 +52,33 @@ async function run() {
 
 
     app.get("/dty-machine-details-from-present-lot", async (req, res) => {
+        let existingArrWithoutId = [];
+        const existingArr = await dtyMcDetailsFromPresentLot.find().toArray();
+        for (let elem of existingArr) {
+            const { _id, ...rest } = elem;
+            existingArrWithoutId.push(rest);
+        }
+        res.send(existingArrWithoutId);
+    })
+
+    app.get("/poy-machine-details-from-present-lot", async (req, res) => {
+        let existingArrWithoutId = [];
+        const existingArr = await poyMcDetailsFromPresentLot.find().toArray();
+        for (let elem of existingArr) {
+            const { _id, ...rest } = elem;
+            existingArrWithoutId.push(rest);
+        }
+        res.send(existingArrWithoutId);
+    })
+
+    app.get("/poy-winders/:WinderNo", async (req, res) => {
+        const WinderNo = parseInt(req.params.WinderNo);
+        const query = { WinderNo: WinderNo };
+        const winderData = await poyMcDetailsFromPresentLot.findOne(query);
+        res.send(winderData);
+    })
+
+    app.get("/dty-machine-details-from-present-lot/sortedAndMerged", async (req, res) => {
         let existingArrWithoutId = [];
         const existingArr = await dtyMcDetailsFromPresentLot.find().toArray();
         for (let elem of existingArr) {
@@ -137,7 +165,6 @@ async function run() {
         const result = await dtyMcDetailsFromPresentLot.updateOne(query, docToUpdate, option);
         res.send(result);
 
-        // res.send("hit")
     })
 
 }
