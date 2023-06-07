@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { format } = require('date-fns');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ async function run() {
     const dtyPresentLotAndTransfer = client.db("polyspinning").collection("presentLotAndTransfer");
     const dtyMcDetailsFromPresentLot = client.db("polyspinning").collection("dtyMcDetailsFromPresentLot");
     const poyMcDetailsFromPresentLot = client.db("polyspinning").collection("poyMcDetailsFromPresentLot");
+    const poyWinderUpdates = client.db("polyspinning").collection("poyWinderUpdates");
 
     app.get("/dtyMachines", async (req, res) => {
         const query = {};
@@ -64,8 +66,9 @@ async function run() {
     app.get("/poy-machine-details-from-present-lot", async (req, res) => {
         let existingArrWithoutId = [];
         const existingArr = await poyMcDetailsFromPresentLot.find().toArray();
-        for (let elem of existingArr) {
-            const { _id, ...rest } = elem;
+        const sortedExistingArr = existingArr.sort((a, b) => a.WinderNo - b.WinderNo)
+        for (let elem of sortedExistingArr) {
+            const { _id, uploadedAt, ...rest } = elem;
             existingArrWithoutId.push(rest);
         }
         res.send(existingArrWithoutId);
@@ -73,6 +76,8 @@ async function run() {
 
     app.post("/poy-machine-details-from-present-lot", async (req, res) => {
         const newWinderData = req.body;
+        newWinderData.uploadedAt = format(new Date(), "Pp");
+        newWinderData.updatedAt = "-";
         console.log(newWinderData);
         const result = await poyMcDetailsFromPresentLot.insertOne(newWinderData);
         console.log(result);
@@ -82,7 +87,7 @@ async function run() {
     app.put("/poy-machine-details-from-present-lot", async (req, res) => {
         const { winderDetails, changedProps } = req.body;
         const changedPropsWithoutId = changedProps.filter(element => element !== '_id');
-        // console.log(changedPropsWithoutId);
+        console.log(changedPropsWithoutId);
         const query = { WinderNo: winderDetails.WinderNo };
         const option = { upsert: true };
 
@@ -92,32 +97,37 @@ async function run() {
                 // console.log(key);
                 updatedMCDetails[key] = winderDetails[key];
             }
+            updatedMCDetails.updatedAt = format(new Date(), "Pp");
         }
         console.log("updatedWinderDetails", updatedMCDetails);
         const docToUpdate = { $set: updatedMCDetails }
+        console.log(query);
         const result = await poyMcDetailsFromPresentLot.updateOne(query, docToUpdate, option);
         res.send(result);
 
     })
 
     app.get("/poy-winders/:WinderNo", async (req, res) => {
-        const WinderNo = parseInt(req.params.WinderNo);
+        const WinderNo = req.params.WinderNo;
         const query = { WinderNo: WinderNo };
         const winderData = await poyMcDetailsFromPresentLot.findOne(query);
         res.send(winderData);
     })
 
-    app.put("/poy-winders/:WinderNo", async (req, res) => {
-
-    })
-
     app.post("/poy-winder-updates", async (req, res) => {
-
+        console.log(req.body);
+        const { WinderData, changedProps } = req.body;
+        WinderData.uploadedAt = format(new Date(), "Pp");
+        console.log(WinderData);
+        const result = await poyWinderUpdates.insertOne({ winderDetails: WinderData, changedProps });
+        console.log(result);
+        res.send(result);
     })
 
-    app.get("poy-winder-updates", async (req, res) => {
-
-    })
+    // app.get("poy-winder-updates", async (req, res) => {
+    //     const result = await poyWinderUpdates.find({}).toArray();
+    //     res.send(result);
+    // })
 
     app.get("/dty-machine-details-from-present-lot/sortedAndMerged", async (req, res) => {
         let existingArrWithoutId = [];
