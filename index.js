@@ -71,11 +71,52 @@ async function run() {
         res.send(existingArrWithoutId);
     })
 
+    app.post("/poy-machine-details-from-present-lot", async (req, res) => {
+        const newWinderData = req.body;
+        console.log(newWinderData);
+        const result = await poyMcDetailsFromPresentLot.insertOne(newWinderData);
+        console.log(result);
+        res.send(result);
+    })
+
+    app.put("/poy-machine-details-from-present-lot", async (req, res) => {
+        const { winderDetails, changedProps } = req.body;
+        const changedPropsWithoutId = changedProps.filter(element => element !== '_id');
+        // console.log(changedPropsWithoutId);
+        const query = { WinderNo: winderDetails.WinderNo };
+        const option = { upsert: true };
+
+        let updatedMCDetails = {};
+        if (winderDetails) {
+            for (let key of changedPropsWithoutId) {
+                // console.log(key);
+                updatedMCDetails[key] = winderDetails[key];
+            }
+        }
+        console.log("updatedWinderDetails", updatedMCDetails);
+        const docToUpdate = { $set: updatedMCDetails }
+        const result = await poyMcDetailsFromPresentLot.updateOne(query, docToUpdate, option);
+        res.send(result);
+
+    })
+
     app.get("/poy-winders/:WinderNo", async (req, res) => {
         const WinderNo = parseInt(req.params.WinderNo);
         const query = { WinderNo: WinderNo };
         const winderData = await poyMcDetailsFromPresentLot.findOne(query);
         res.send(winderData);
+    })
+
+    app.put("/poy-winders/:WinderNo", async (req, res) => {
+
+    })
+
+    app.post("/poy-winder-updates", async (req, res) => {
+
+    })
+
+    app.get("poy-winder-updates", async (req, res) => {
+
     })
 
     app.get("/dty-machine-details-from-present-lot/sortedAndMerged", async (req, res) => {
