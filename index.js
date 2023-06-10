@@ -25,23 +25,51 @@ async function run() {
     const poyWinderUpdates = client.db("polyspinning").collection("poyWinderUpdates");
     const dtyProcessParams = client.db("polyspinning").collection("dtyProcessParams");
 
-    app.get("/dtyMachines", async (req, res) => {
+    app.get("/dty-machines", async (req, res) => {
         const query = {};
         const machines = await dtyMachinesCollection.find(query).toArray();
-        console.log(machines);
+        // const machines = await dtyMachinesCollection.find(query, { sort: { "mcInfo.DTYMCNo": 1 }}).toArray();
+        // console.log(machines);
         res.send(machines);
     });
 
-    app.get("/dtyMachines/:machineNo", async (req, res) => {
-        const machineNo = parseInt(req.params.machineNo);
-        const query = { "mcInfo.machineNo": machineNo };
-        // console.log(query);
-        const machine = await dtyMachinesCollection.findOne(query);
-        // console.log(machine);
-        res.send(machine);
+    // api for getting details of a dty mc. if no side is mentioned in query then it will give resp for both side. else one side as expected.
+    app.get("/dty-machines/machine-details", async (req, res) => {
+        const { machine } = req.query;
+        console.log(machine);
+        const nonDigitRegex = /\D/;
+        const containsOnlyNumbers = !nonDigitRegex.test(machine);
+
+        const machineNo = parseInt(machine).toString();
+
+        if (containsOnlyNumbers) {
+            // its full machine
+            let fullMC = [];
+            const Side = ["A", "B"];
+            for (let elem of Side) {
+                const query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": elem };
+                const machineData = await dtyMachinesCollection.findOne(query);
+
+                if (machineData) { fullMC.push(machineData); }
+                else {
+                    fullMC.push({ message: `No parameters found for M/C #${machineNo}/${elem}` })
+                }
+            }
+            res.send(fullMC)
+        } else {
+            // its half machine. if data for half MC is found then send it, otherwise look for params with full MC.
+            const Side = machine.charAt(machine.length - 1);
+            const query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": Side };
+            const machineData = await dtyMachinesCollection.findOne(query);
+
+            if (machineData) { res.send(machineData) }
+            else {
+                res.send({ message: `No parameters found for M/C #${machineNo}/${Side}` })
+            }
+        }
     });
 
-    app.put("/dtyMachines/", async (req, res) => {
+    app.put("/dty-machines/", async (req, res) => {
         const newParameter = req.body;
         const machine = newParameter.DTYMCNo;
         const machineNo = parseInt(machine).toString();
@@ -50,47 +78,47 @@ async function run() {
         const option = { upsert: true };
         const docToUpdate = {
             $set: {
-                "params.MCSpeed" : newParameter.MCSpeed,
-                "params.SOF" : newParameter.SOF,
-                "params.TOF" : newParameter.TOF,
-                "params.DY" : newParameter.DY,
-                "params.Shaft2B" : newParameter.Shaft2B,
-                "params.CPM" : newParameter.CPM,
-                "params.DEV" : newParameter.DEV,
-                "params.PH" : newParameter.PH,
-                "params.SH" : newParameter.SH,
-                "params.EDraw" : newParameter.EDraw,
-                "params.DR" : newParameter.DR,
-                "params.OilerRpm" : newParameter.OilerRpm,
-                "params.OilType" : newParameter.OilType,
-                "params.Axial" : newParameter.Axial,
-                "params.Stroke" : newParameter.Stroke,
-                "params.AirPressure" : newParameter.AirPressure,
-                "params.IntJetType" : newParameter.IntJetType,
-                
-                "DTYInfo.DTYType" : newParameter.DTYType,
-                "DTYInfo.DTYColor" : newParameter.DTYColor,
-                "DTYInfo.DTYTubeColor" : newParameter.DTYTubeColor,
-                "DTYInfo.LotNo" : newParameter.LotNo,
-                "DTYInfo.CustomerName" : newParameter.CustomerName,
-                
-                "POYInfo.POYType" : newParameter.POYType,
-                "POYInfo.ChipsName" : newParameter.ChipsName,
-                "POYInfo.POYLine" : newParameter.POYLine,
-                
+                "params.MCSpeed": newParameter.MCSpeed,
+                "params.SOF": newParameter.SOF,
+                "params.TOF": newParameter.TOF,
+                "params.DY": newParameter.DY,
+                "params.Shaft2B": newParameter.Shaft2B,
+                "params.CPM": newParameter.CPM,
+                "params.DEV": newParameter.DEV,
+                "params.PH": newParameter.PH,
+                "params.SH": newParameter.SH,
+                "params.EDraw": newParameter.EDraw,
+                "params.DR": newParameter.DR,
+                "params.OilerRpm": newParameter.OilerRpm,
+                "params.OilType": newParameter.OilType,
+                "params.Axial": newParameter.Axial,
+                "params.Stroke": newParameter.Stroke,
+                "params.AirPressure": newParameter.AirPressure,
+                "params.IntJetType": newParameter.IntJetType,
+
+                "DTYInfo.DTYType": newParameter.DTYType,
+                "DTYInfo.DTYColor": newParameter.DTYColor,
+                "DTYInfo.DTYTubeColor": newParameter.DTYTubeColor,
+                "DTYInfo.LotNo": newParameter.LotNo,
+                "DTYInfo.CustomerName": newParameter.CustomerName,
+
+                "POYInfo.POYType": newParameter.POYType,
+                "POYInfo.ChipsName": newParameter.ChipsName,
+                "POYInfo.POYLine": newParameter.POYLine,
+
 
                 // props to be updated mathematically
-                "DTYInfo.DTYDenier" : newParameter.DTYType.split("/")[0],
-                "DTYInfo.Filaments" : newParameter.DTYType.split("/")[1],
-                "POYInfo.POYDenier" : newParameter.POYType.split("/")[0],
-                "POYInfo.Filaments" : newParameter.POYType.split("/")[1],
-                "params.T1" : parseInt(newParameter.POYType.split("/")[0]/4),
-                "params.T2" : parseInt(newParameter.DTYType.split("/")[0]/4),
-                "params.T3" : "",
-                "params.IntType" : newParameter.DTYType.split("/")[2],
+                "DTYInfo.DTYDenier": newParameter.DTYType.split("/")[0],
+                "DTYInfo.Filaments": newParameter.DTYType.split("/")[1],
+                "POYInfo.POYDenier": newParameter.POYType.split("/")[0],
+                "POYInfo.Filaments": newParameter.POYType.split("/")[1],
+                "params.T1": parseInt(newParameter.POYType.split("/")[0] / 4),
+                "params.T2": parseInt(newParameter.DTYType.split("/")[0] / 4),
+                "params.T3": "",
+                "params.IntType": newParameter.DTYType.split("/")[2],
 
-                "updatedAt.parameters" : format(new Date(), "Pp"),
-                
+                "updatedAt.parameters": format(new Date(), "Pp"),
+
                 // not updated props
                 // "mcInfo.DTYMCNo" : newParameter.DTYMCNo,
                 // "mcInfo.Brand" : newParameter.Brand,
@@ -106,7 +134,7 @@ async function run() {
                 // "POYInfo.EndsPerWinder" : newParameter.EndsPerWinder,
                 // "POYInfo.POYProcessSpeed" : newParameter.POYProcessSpeed,
                 // "POYInfo.POYBobbin" : newParameter.POYBobbin,
-                
+
                 // to be updated from present lot
                 // "mcInfo.Status" : newParameter.Status,
                 // "DTYInfo.DTYType" : newParameter.DTYType,
@@ -147,7 +175,7 @@ async function run() {
                 res.send(result);
             }
         }
-       console.log(newParameter);
+        console.log(newParameter);
         // res.send("machine");
     });
 
