@@ -28,6 +28,25 @@ async function run() {
     app.get("/dty-machines", async (req, res) => {
         const query = {};
         const machines = await dtyMachinesCollection.find(query).toArray();
+        machines.sort((a, b) => {
+            const dtyMcNoA = parseInt(a.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
+            const dtyMcNoB = parseInt(b.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
+          
+            if (dtyMcNoA < dtyMcNoB) {
+              return -1;
+            } else if (dtyMcNoA > dtyMcNoB) {
+              return 1;
+            } else {
+              const sideOrder = { A: 1, B: 2 };
+              const sideComparison = sideOrder[a.mcInfo.Side] - sideOrder[b.mcInfo.Side];
+          
+              if (sideComparison === 0) {
+                return 0;
+              } else {
+                return sideComparison;
+              }
+            }
+          });
         // const machines = await dtyMachinesCollection.find(query, { sort: { "mcInfo.DTYMCNo": 1 }}).toArray();
         // console.log(machines);
         res.send(machines);
@@ -36,7 +55,6 @@ async function run() {
     // api for getting details of a dty mc. if no side is mentioned in query then it will give resp for both side. else one side as expected.
     app.get("/dty-machines/machine-details", async (req, res) => {
         const { machine } = req.query;
-        console.log(machine);
         const nonDigitRegex = /\D/;
         const containsOnlyNumbers = !nonDigitRegex.test(machine);
 
@@ -69,7 +87,7 @@ async function run() {
         }
     });
 
-    app.put("/dty-machines/", async (req, res) => {
+    app.put("/dty-machines/update-from-parameter", async (req, res) => {
         const newParameter = req.body;
         const machine = newParameter.DTYMCNo;
         const machineNo = parseInt(machine).toString();
@@ -155,7 +173,7 @@ async function run() {
             for (let elem of Side) {
                 query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": elem };
                 const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
-                console.log("result", result);
+                // console.log("result", result);
                 response.push(result);
             }
             res.send(response);
@@ -164,24 +182,54 @@ async function run() {
                 Side.push("A");
                 query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": "A" };
                 const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
-                console.log("result", result);
+                // console.log("result", result);
                 res.send(result);
             }
             if (machine.endsWith("B")) {
                 Side.push("B");
                 query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": "B" };
                 const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
-                console.log("result", result);
+                // console.log("result", result);
                 res.send(result);
             }
         }
-        console.log(newParameter);
+        // console.log(newParameter);
         // res.send("machine");
     });
 
+    app.put("/dty-machines/update-from-present-lot", async(req, res)=>{
+        const newLot = req.body;
+        const machine = newLot.DTYMCNo;
+        const machineNo = parseInt(machine).toString();
+        const query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": newLot.Side };
+        const option = { upsert: true };
+
+        const docToUpdate = {
+            $set: {
+                "updatedAt.presentLotAndTA": format(new Date(), "Pp"),
+
+                "mcInfo.Status" : "Running",
+
+                "DTYInfo.DTYType" : newLot.ProductType,
+                "DTYInfo.LotNo" : newLot.PresentLotNo,
+                "DTYInfo.InspectionArea": newLot.InspectionArea,
+                "DTYInfo.DTYTubeColor": newLot.DTYBobbinColor,
+                
+                "POYInfo.POYLine" : newLot.POYLine,
+                
+                "params.AirPressure" : newLot.AirPress,
+                "params.IntJetType" : newLot.INTJet,
+            }
+        };
+        
+        const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
+        console.log("updated main machine", result);
+        res.send(result);
+    })
+
     app.get("/present-lot-and-transfer-area", async (req, res) => {
         const result = await dtyPresentLotAndTransfer.findOne({}, { sort: { uploadedAt: -1 } });
-        console.log(result);
+        // console.log(result);
         res.send(result);
     })
 
@@ -266,7 +314,6 @@ async function run() {
 
     app.post("/dty-machine-details-from-present-lot", async (req, res) => {
         const newMCDetails = req.body;
-        console.log(newMCDetails);
         const result = await dtyMcDetailsFromPresentLot.insertOne(newMCDetails);
         // console.log(result);
         res.send(result);
@@ -286,7 +333,6 @@ async function run() {
                 updatedMCDetails[key] = oneMCDetails[key];
             }
         }
-        console.log("updatedMCDetails", updatedMCDetails);
         const docToUpdate = { $set: updatedMCDetails }
         const result = await dtyMcDetailsFromPresentLot.updateOne(query, docToUpdate, option);
         res.send(result);
@@ -294,13 +340,11 @@ async function run() {
     })
 
     app.post("/dty-machine-updates", async (req, res) => {
-        console.log(req.body);
         const { newMCDetails, changedProps } = req.body;
         newMCDetails.uploadedAt = format(new Date(), "Pp");
         newMCDetails.changedProps = changedProps;
-        console.log(newMCDetails);
         const result = await dtyMachineUpdates.insertOne(newMCDetails);
-        console.log(result);
+        // console.log(result);
         res.send(result);
     })
 
@@ -313,7 +357,6 @@ async function run() {
     app.get("/dty-process-parameters", async (req, res) => {
         const needQuery = req.query.need;
         let existingParamsWithoutId = [];
-        console.log(needQuery);
         if (needQuery === "withoutIdAndTime") {
             const existingParams = await dtyProcessParams.find({}, { sort: { uploadedAt: -1 } }).toArray();
             for (let elem of existingParams) {
@@ -335,8 +378,6 @@ async function run() {
     app.get("/dty-process-parameters-by-query", async (req, res) => {
         const machineNo = req.query.machineNo;
         const machinesString = req.query.machines;
-        console.log(machineNo);
-        console.log(machinesString);
 
         const getData = async (machineNo) => {
             const nonDigitRegex = /\D/;
@@ -383,12 +424,9 @@ async function run() {
 
 
     app.post("/dty-process-parameters", async (req, res) => {
-        // console.log(req.body);
         const paramDetails = req.body;
         paramDetails.uploadedAt = format(new Date(), "Pp");
-        console.log(paramDetails);
         const result = await dtyProcessParams.insertOne(paramDetails);
-        console.log(result);
         res.send(result);
     })
 
@@ -410,30 +448,24 @@ async function run() {
         const newWinderData = req.body;
         newWinderData.uploadedAt = format(new Date(), "Pp");
         newWinderData.updatedAt = "-";
-        console.log(newWinderData);
         const result = await poyMcDetailsFromPresentLot.insertOne(newWinderData);
-        console.log(result);
         res.send(result);
     })
 
     app.put("/poy-machine-details-from-present-lot", async (req, res) => {
         const { winderDetails, changedProps } = req.body;
         const changedPropsWithoutId = changedProps.filter(element => element !== '_id');
-        console.log(changedPropsWithoutId);
         const query = { WinderNo: winderDetails.WinderNo };
         const option = { upsert: true };
 
         let updatedMCDetails = {};
         if (winderDetails) {
             for (let key of changedPropsWithoutId) {
-                // console.log(key);
                 updatedMCDetails[key] = winderDetails[key];
             }
             updatedMCDetails.updatedAt = format(new Date(), "Pp");
         }
-        console.log("updatedWinderDetails", updatedMCDetails);
         const docToUpdate = { $set: updatedMCDetails }
-        console.log(query);
         const result = await poyMcDetailsFromPresentLot.updateOne(query, docToUpdate, option);
         res.send(result);
 
@@ -447,12 +479,10 @@ async function run() {
     })
 
     app.post("/poy-winder-updates", async (req, res) => {
-        console.log(req.body);
         const { WinderData, changedProps } = req.body;
         WinderData.uploadedAt = format(new Date(), "Pp");
-        console.log(WinderData);
         const result = await poyWinderUpdates.insertOne({ winderDetails: WinderData, changedProps });
-        console.log(result);
+        // console.log(result);
         res.send(result);
     })
 
