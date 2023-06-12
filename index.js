@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+require('dotenv').config();
+
 const { format } = require('date-fns');
+// const { connectToServer } = require('./utils/dbConnect');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -10,11 +12,20 @@ const port = process.env.PORT || 5000;
 app.use(cors());;
 app.use(express.json());
 
+// const client = dbConnect();
+// connectToServer((err)=>{
+//     if(!err){
+//         app.listen(port, () => { console.log(`polyspinning server is running on port ${port}`) })
+//     } else {
+//         console.log(err);
+//     }
+// })
+
+
 const uri = process.env.MONGO_URI;
 // const uri = "mongodb://localhost:27017";
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-
 
 async function run() {
     const dtyMachinesCollection = client.db("polyspinning").collection("dtyMachines");
@@ -31,22 +42,22 @@ async function run() {
         machines.sort((a, b) => {
             const dtyMcNoA = parseInt(a.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
             const dtyMcNoB = parseInt(b.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
-          
+
             if (dtyMcNoA < dtyMcNoB) {
-              return -1;
+                return -1;
             } else if (dtyMcNoA > dtyMcNoB) {
-              return 1;
+                return 1;
             } else {
-              const sideOrder = { A: 1, B: 2 };
-              const sideComparison = sideOrder[a.mcInfo.Side] - sideOrder[b.mcInfo.Side];
-          
-              if (sideComparison === 0) {
-                return 0;
-              } else {
-                return sideComparison;
-              }
+                const sideOrder = { A: 1, B: 2 };
+                const sideComparison = sideOrder[a.mcInfo.Side] - sideOrder[b.mcInfo.Side];
+
+                if (sideComparison === 0) {
+                    return 0;
+                } else {
+                    return sideComparison;
+                }
             }
-          });
+        });
         // const machines = await dtyMachinesCollection.find(query, { sort: { "mcInfo.DTYMCNo": 1 }}).toArray();
         // console.log(machines);
         res.send(machines);
@@ -197,7 +208,7 @@ async function run() {
         // res.send("machine");
     });
 
-    app.put("/dty-machines/update-from-present-lot", async(req, res)=>{
+    app.put("/dty-machines/update-from-present-lot", async (req, res) => {
         const newLot = req.body;
         const machine = newLot.DTYMCNo;
         const machineNo = parseInt(machine).toString();
@@ -208,24 +219,42 @@ async function run() {
             $set: {
                 "updatedAt.presentLotAndTA": format(new Date(), "Pp"),
 
-                "mcInfo.Status" : "Running",
+                "mcInfo.Status": "Running",
 
-                "DTYInfo.DTYType" : newLot.ProductType,
-                "DTYInfo.LotNo" : newLot.PresentLotNo,
+                "DTYInfo.DTYType": newLot.ProductType,
+                "DTYInfo.LotNo": newLot.PresentLotNo,
                 "DTYInfo.InspectionArea": newLot.InspectionArea,
                 "DTYInfo.DTYTubeColor": newLot.DTYBobbinColor,
-                
-                "POYInfo.POYLine" : newLot.POYLine,
-                
-                "params.AirPressure" : newLot.AirPress,
-                "params.IntJetType" : newLot.INTJet,
+
+                "POYInfo.POYLine": newLot.POYLine,
+
+                "params.AirPressure": newLot.AirPress,
+                "params.IntJetType": newLot.INTJet,
             }
         };
-        
+
         const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
         console.log("updated main machine", result);
         res.send(result);
-    })
+    });
+
+    app.put("/dty-machines/update-manually", async (req, res) => {
+        const {DTYMCNo, Side} = req.query;
+        const {changedProps} = req.body;
+        // console.log("changedProperties", changedProps);
+        const query = { "mcInfo.DTYMCNo": DTYMCNo, "mcInfo.Side": Side };
+        const docToUpdate = { $set: {} };
+        for(let key in changedProps){
+            for(let n in changedProps[key]){
+                docToUpdate.$set[`${key}.${n}`] = changedProps[key][n];
+            }
+        }
+        docToUpdate.$set["updatedAt.manually"] = format(new Date(), "Pp");
+        const option = { upsert: true };
+        // console.log(docToUpdate);
+        const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
+        res.send(result);
+    });
 
     app.get("/present-lot-and-transfer-area", async (req, res) => {
         const result = await dtyPresentLotAndTransfer.findOne({}, { sort: { uploadedAt: -1 } });
