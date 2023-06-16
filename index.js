@@ -45,24 +45,6 @@ app.use("/api/v1/poy-winder-updates", poyWinderUpdatesRoute)
 //     const poyWinderUpdates = client.db("polyspinning").collection("poyWinderUpdates");
 //     const dtyProcessParams = client.db("polyspinning").collection("dtyProcessParams");
 
-// // dtyMachines
-
-// // p.lot and ta
-
-// // all dty machines from different sources
-
-// dty machine updates
-
-// dty process parameters or in short, params
-
-// // all poy machines from different sources
-
-// poy winders
-
-// poy winder updates
-
-// }
-
 // run().catch(err => console.log(err));
 
 app.get('/', (req, res) => {
