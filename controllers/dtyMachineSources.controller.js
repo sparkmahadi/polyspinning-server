@@ -2,6 +2,7 @@
 const { db } = require("../utils/connectDB");
 const dtyMcDetailsFromPresentLot = db.collection("dtyMcDetailsFromPresentLot")
 
+// to compare the existing array in database with new lot update from excel
 module.exports.getDtyMCsFromPresentLot = async (req, res) => {
     let existingArrWithoutId = [];
     const existingArr = await dtyMcDetailsFromPresentLot.find().toArray();
@@ -47,7 +48,6 @@ module.exports.getDtyMCSFromPLSortedMerged = async (req, res) => {
 
     const mergedData = [];
 
-    // Create a helper function to compare two objects excluding the "Side" property
     function compareObjects(obj1, obj2) {
         const { Side: side1, ...rest1 } = obj1;
         const { Side: side2, ...rest2 } = obj2;

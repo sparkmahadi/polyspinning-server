@@ -1,5 +1,6 @@
 
 //     const dtyMachineUpdates = client.db("polyspinning").collection("dtyMachineUpdates");
+const { format } = require("date-fns");
 const { db } = require("../utils/connectDB");
 const dtyMachineUpdates = db.collection("dtyMachineUpdates")
 
@@ -13,5 +14,6 @@ module.exports.postDtyMCUpdates = async (req, res) => {
 }
 
 module.exports.getDtyMCUpdates = async (req, res) => {
-
+const machines = await dtyMachineUpdates.find({}).toArray();
+res.send(machines);
 }

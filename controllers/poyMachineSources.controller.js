@@ -1,7 +1,6 @@
-
-    // const poyMcDetailsFromPresentLot = client.db("polyspinning").collection("poyMcDetailsFromPresentLot");
-    const { db } = require("../utils/connectDB");
-    const poyMcDetailsFromPresentLot = db.collection("poyMcDetailsFromPresentLot")
+const { format } = require("date-fns");
+const { db } = require("../utils/connectDB");
+const poyMcDetailsFromPresentLot = db.collection("poyMcDetailsFromPresentLot")
 
 module.exports.getPoyMCsFromPresentLot = async (req, res) => {
     let existingArrWithoutId = [];

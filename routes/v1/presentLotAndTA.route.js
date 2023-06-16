@@ -39,4 +39,8 @@ router.route("/")
 
 .post(presentLotAndTAController.uploadPresentLot)
 
+
+router.route("/history").get(presentLotAndTAController.getPresentLotHistory)
+router.route("/history/:id").get(presentLotAndTAController.getLotDataById)
+
 module.exports = router;
