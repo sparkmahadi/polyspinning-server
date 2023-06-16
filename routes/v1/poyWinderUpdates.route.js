@@ -7,4 +7,6 @@ router.route("/")
 .get(poyWinderUpdatesController.getPoyWinderUpdates)
 .post(poyWinderUpdatesController.postPoyWinderUpdates)
 
+router.route("/update-dty-machines").put();
+
 module.exports = router;
