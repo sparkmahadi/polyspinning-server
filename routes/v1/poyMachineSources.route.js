@@ -1,11 +1,13 @@
 const express = require('express');
-const poyMachineSources = require('../../controllers/poyMachineSources.controller');
+const poyMachineSourcesController = require('../../controllers/poyMachineSources.controller');
 
 const router = express.Router();
 
 router.route("/")
-.get(poyMachineSources.getPoyMCsFromPresentLot)
-.post(poyMachineSources.postPoyMCsFromPresentLot)
-.put(poyMachineSources.updatePoyMCsFromPresentLot)
+.get(poyMachineSourcesController.getPoyMCsFromPresentLot)
+.post(poyMachineSourcesController.postPoyMCsFromPresentLot)
+.put(poyMachineSourcesController.updatePoyMCsFromPresentLot)
+
+router.route("/update-poyInfo-in-dty-machines").put(poyMachineSourcesController.updateDtyMcByPoyInfo);
 
 module.exports = router;

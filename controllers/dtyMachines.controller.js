@@ -5,6 +5,7 @@ const dtyMachinesCollection = db.collection("dtyMachines")
 module.exports.getDtyMachines =  async (req, res) => {
     const query = {};
     const machines = await dtyMachinesCollection.find(query).toArray();
+    // console.log("machines", machines);
     machines.sort((a, b) => {
         const dtyMcNoA = parseInt(a.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
         const dtyMcNoB = parseInt(b.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
