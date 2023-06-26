@@ -5,6 +5,9 @@ const router = express.Router();
 
 router.route("/").get(dtyMachinesController.getDtyMachines);
 
+// working on this api
+router.route("/search").get(dtyMachinesController.searchDtyMachine);
+
 // api for getting details of a dty mc. if no side is mentioned in query then it will give resp for both side. else one side as expected.
 router.route("/machine-details").get(dtyMachinesController.getDtyMachineDetails);
 

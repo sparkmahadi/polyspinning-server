@@ -2,7 +2,7 @@ const { format } = require("date-fns");
 const { db } = require("../utils/connectDB");
 const dtyMachinesCollection = db.collection("dtyMachines")
 
-module.exports.getDtyMachines =  async (req, res) => {
+module.exports.getDtyMachines = async (req, res) => {
     const query = {};
     const machines = await dtyMachinesCollection.find(query).toArray();
     // console.log("machines", machines);
@@ -217,7 +217,7 @@ module.exports.updateMCManually = async (req, res) => {
         }
     }
     docToUpdate.$set["updatedAt.manually"] = format(new Date(), "Pp");
-    
+
     if (!Side) {
         Side = ["A", "B"];
         const response = [];
@@ -230,14 +230,46 @@ module.exports.updateMCManually = async (req, res) => {
         }
         res.send(response);
     } else {
-            query = { "mcInfo.DTYMCNo": DTYMCNo, "mcInfo.Side": Side };
-            const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
-            // console.log("result", result);
-            res.send(result);
+        query = { "mcInfo.DTYMCNo": DTYMCNo, "mcInfo.Side": Side };
+        const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
+        // console.log("result", result);
+        res.send(result);
     }
 
     // const option = { upsert: true };
     // // console.log(docToUpdate);
     // const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
     // res.send(result);
+}
+
+module.exports.searchDtyMachine = async (req, res) => {
+    const { searchedCategory, searchedProp, searchText } = req.query;
+    let query = {
+        "$or": [
+            { [`${searchedCategory}.${searchedProp}`]: { $regex: new RegExp(searchText, "i") } }
+        ]
+    };
+    const machines = await dtyMachinesCollection.find(query).toArray();
+
+    machines.sort((a, b) => {
+        const dtyMcNoA = parseInt(a.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
+        const dtyMcNoB = parseInt(b.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
+
+        if (dtyMcNoA < dtyMcNoB) {
+            return -1;
+        } else if (dtyMcNoA > dtyMcNoB) {
+            return 1;
+        } else {
+            const sideOrder = { A: 1, B: 2 };
+            const sideComparison = sideOrder[a.mcInfo.Side] - sideOrder[b.mcInfo.Side];
+
+            if (sideComparison === 0) {
+                return 0;
+            } else {
+                return sideComparison;
+            }
+        }
+    });
+
+    res.send(machines);
 }
