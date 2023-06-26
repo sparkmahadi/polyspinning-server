@@ -13,6 +13,7 @@ const dtyProcessParamsRoute = require('./routes/v1/dtyProcessParameters.route');
 const poyMachineSourcesRoute = require('./routes/v1/poyMachineSources.route');
 const poyWinderRoute = require('./routes/v1/poyWinders.route');
 const poyWinderUpdatesRoute = require('./routes/v1/poyWinderUpdates.route');
+const usersRoute = require('./routes/v1/users.route');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,6 +28,8 @@ connectToDB()
   .catch((err) => {
     console.error('Error starting server:', err);
   });
+
+app.use("/api/v1/users", usersRoute)
 
 app.use("/api/v1/present-lot-and-transfer-area", presentLotAndTARoute);
 app.use("/api/v1/dty-machines", dtyMachinesRoute);
@@ -48,9 +51,9 @@ app.use("/api/v1/poy-winder-updates", poyWinderUpdatesRoute)
 // run().catch(err => console.log(err));
 
 app.get('/', (req, res) => {
-    res.send('Polyspinning server is running')
+  res.send('Polyspinning server is running')
 })
 
-app.all("*", (req, res)=>{
-    res.send("No routes found in server");
+app.all("*", (req, res) => {
+  res.send("No routes found in server");
 })
