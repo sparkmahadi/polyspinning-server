@@ -179,6 +179,7 @@ module.exports.updateMCFromPresentLot = async (req, res) => {
     const query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": newLot.Side };
     const option = { upsert: true };
 
+    const [DTYDenier, Filaments, IntType] = newLot.ProductType.split("/");
     const docToUpdate = {
         $set: {
             "updatedAt.presentLotAndTA": format(new Date(), "Pp"),
@@ -186,12 +187,15 @@ module.exports.updateMCFromPresentLot = async (req, res) => {
             "mcInfo.Status": "Running",
 
             "DTYInfo.DTYType": newLot.ProductType,
+            "DTYInfo.DTYDenier": DTYDenier,
+            "DTYInfo.Filaments": Filaments,
             "DTYInfo.LotNo": newLot.PresentLotNo,
             "DTYInfo.InspectionArea": newLot.InspectionArea,
             "DTYInfo.DTYTubeColor": newLot.DTYBobbinColor,
 
             "POYInfo.POYLine": newLot.POYLine,
 
+            "params.IntType": IntType,
             "params.AirPressure": newLot.AirPress,
             "params.IntJetType": newLot.INTJet,
         }

@@ -83,7 +83,7 @@ module.exports.updateDtyMCsFromPresentLot = async (req, res) => {
     const changedPropsWithoutId = changedProps.filter(element => element !== '_id');
     // console.log(changedPropsWithoutId);
     const query = { DTYMCNo: oneMCDetails.DTYMCNo, Side: oneMCDetails.Side };
-    const option = { upsert: true };
+    const option = { upsert: false };
 
     let updatedMCDetails = {};
     if (oneMCDetails) {
