@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-// const uri = process.env.MONGO_URI;
-const uri = 'mongodb://localhost:27017';
+const uri = process.env.MONGO_URI;
+// const uri = 'mongodb://localhost:27017';
 
 
 const dbName = 'polyspinning';
