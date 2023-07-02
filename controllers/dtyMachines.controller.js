@@ -177,7 +177,7 @@ module.exports.updateMCFromPresentLot = async (req, res) => {
     const machine = newLot.DTYMCNo;
     const machineNo = parseInt(machine).toString();
     const query = { "mcInfo.DTYMCNo": machineNo, "mcInfo.Side": newLot.Side };
-    const option = { upsert: true };
+    const option = { upsert: false };
 
     const [DTYDenier, Filaments, IntType] = newLot.ProductType.split("/");
     const docToUpdate = {
@@ -256,8 +256,8 @@ module.exports.searchDtyMachine = async (req, res) => {
     const machines = await dtyMachinesCollection.find(query).toArray();
 
     machines.sort((a, b) => {
-        const dtyMcNoA = parseInt(a.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
-        const dtyMcNoB = parseInt(b.mcInfo.DTYMCNo.replace('DTYMCNo ', ''));
+        const dtyMcNoA = parseInt(a.mcInfo?.DTYMCNo.replace('DTYMCNo ', ''));
+        const dtyMcNoB = parseInt(b.mcInfo?.DTYMCNo.replace('DTYMCNo ', ''));
 
         if (dtyMcNoA < dtyMcNoB) {
             return -1;
