@@ -210,7 +210,7 @@ module.exports.updateMCManually = async (req, res) => {
     console.log('manually update called');
     const { DTYMCNo, Side } = req.query;
     const { changedProps } = req.body;
-    // console.log("changedProperties", changedProps);
+    console.log("changedProperties", changedProps);
     let query = {};
     const option = { upsert: true };
 
@@ -276,4 +276,24 @@ module.exports.searchDtyMachine = async (req, res) => {
     });
 
     res.send(machines);
+}
+
+module.exports.updateOtherMC = async (req, res) =>{
+    const {Props} = req.body;
+    const {DTYMCNo, Side, UpdatesFrom} = req.query;
+    const query = {"mcInfo.DTYMCNo" :DTYMCNo, "mcInfo.Side" :Side}
+    const option = {upsert: false};
+    const docToUpdate = { $set: {} };
+
+    for (let key in Props) {
+        for (let n in Props[key]) {
+            docToUpdate.$set[`${key}.${n}`] = Props[key][n];
+        }
+    }
+
+    docToUpdate.$set[`updatedAt.fromMC${UpdatesFrom}`] = format(new Date(), "Pp");
+
+    const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
+    console.log(result);
+    res.send(result);
 }

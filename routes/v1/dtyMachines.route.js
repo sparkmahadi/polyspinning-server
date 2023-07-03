@@ -17,4 +17,6 @@ router.route("/update-from-present-lot").put(dtyMachinesController.updateMCFromP
 
 router.route("/update-manually").put(dtyMachinesController.updateMCManually);
 
+router.route("/update-other-side-property").put(dtyMachinesController.updateOtherMC);
+
 module.exports = router;
