@@ -1,7 +1,12 @@
 const { MongoClient } = require('mongodb');
 
-// const uri = process.env.MONGO_URI;
-const uri = 'mongodb://localhost:27017';
+let uri;
+
+if (process.env.ENVIRONMENT === "PRODUCTION") {
+  uri = process.env.MONGO_URI;
+} else {
+  uri = 'mongodb://localhost:27017';
+}
 
 
 const dbName = 'polyspinning';
