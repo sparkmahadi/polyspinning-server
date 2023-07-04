@@ -1,17 +1,13 @@
 const { format } = require("date-fns");
 const { db } = require("../utils/connectDB");
+const { ObjectId } = require("mongodb");
 const poyMcDetailsFromPresentLot = db.collection("poyMcDetailsFromPresentLot");
 const dtyMachinesCollection = db.collection("dtyMachines")
 
 module.exports.getPoyMCsFromPresentLot = async (req, res) => {
-  let existingArrWithoutId = [];
   const existingArr = await poyMcDetailsFromPresentLot.find().toArray();
-  const sortedExistingArr = existingArr.sort((a, b) => a.WinderNo - b.WinderNo)
-  for (let elem of sortedExistingArr) {
-    const { _id, uploadedAt, ...rest } = elem;
-    existingArrWithoutId.push(rest);
-  }
-  res.send(existingArrWithoutId);
+  const sortedArr = existingArr.sort((a, b) => a.WinderNo - b.WinderNo)
+  res.send(sortedArr);
 }
 
 module.exports.postPoyMCsFromPresentLot = async (req, res) => {
@@ -95,3 +91,11 @@ module.exports.updateDtyMcByPoyInfo = async (req, res) => {
     res.status(500).send("An error occurred while updating the database.");
   }
 };
+
+module.exports.deletePoyMC = async(req, res) =>{
+  const {id} = req.params;
+  const query = {_id: new ObjectId(id)};
+  const result = await poyMcDetailsFromPresentLot.deleteOne(query);
+  console.log(result);
+  res.send(result);
+}

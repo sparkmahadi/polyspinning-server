@@ -8,6 +8,8 @@ router.route("/")
 .post(poyMachineSourcesController.postPoyMCsFromPresentLot)
 .put(poyMachineSourcesController.updatePoyMCsFromPresentLot)
 
+router.route("/delete/:id").delete(poyMachineSourcesController.deletePoyMC);
+
 router.route("/update-poyInfo-in-dty-machines").put(poyMachineSourcesController.updateDtyMcByPoyInfo);
 
 module.exports = router;

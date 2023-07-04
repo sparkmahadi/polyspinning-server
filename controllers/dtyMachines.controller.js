@@ -1,5 +1,6 @@
 const { format } = require("date-fns");
 const { db } = require("../utils/connectDB");
+const { ObjectId } = require("mongodb");
 const dtyMachinesCollection = db.collection("dtyMachines")
 
 module.exports.getDtyMachines = async (req, res) => {
@@ -294,6 +295,14 @@ module.exports.updateOtherMC = async (req, res) =>{
     docToUpdate.$set[`updatedAt.fromMC${UpdatesFrom}`] = format(new Date(), "Pp");
 
     const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
+    console.log(result);
+    res.send(result);
+}
+
+module.exports.deleteDtyMC = async(req, res) =>{
+    const {id} = req.params;
+    const query = {_id: new ObjectId(id)};
+    const result = await dtyMachinesCollection.deleteOne(query);
     console.log(result);
     res.send(result);
 }

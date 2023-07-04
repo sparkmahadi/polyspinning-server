@@ -4,6 +4,7 @@ const dtyMachinesController = require('../../controllers/dtyMachines.controller'
 const router = express.Router();
 
 router.route("/").get(dtyMachinesController.getDtyMachines);
+router.route("/delete/:id").delete(dtyMachinesController.deleteDtyMC);
 
 // working on this api
 router.route("/search").get(dtyMachinesController.searchDtyMachine);
