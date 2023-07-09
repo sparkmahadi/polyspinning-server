@@ -1,6 +1,11 @@
 const { db } = require("../utils/connectDB");
 const usersCollection = db.collection("users");
 
+module.exports.getUsers = async (req, res) => {
+    const user = await usersCollection.find({}).toArray();
+    res.send(user);
+}
+
 module.exports.registerUser = async (req, res) => {
     const user = req.body;
     const query = { email: user.email };

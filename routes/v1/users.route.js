@@ -3,7 +3,8 @@ const usersController = require('../../controllers/users.controller');
 
 const router = express.Router();
 
-router.route('')
+router.route('/')
+.get(usersController.getUsers)
 // to post the users
 .post(usersController.registerUser)
 
