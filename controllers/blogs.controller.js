@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const { db } = require("../utils/connectDB");
 const blogsCollection = db.collection("blogs")
 
@@ -13,4 +14,17 @@ module.exports.postDtyMCUpdates = async (req, res) => {
 module.exports.getBlogs = async (req, res) => {
 const blogs = await blogsCollection.find({}).toArray();
 res.send(blogs);
+}
+
+module.exports.postBlog = async (req, res) => {
+    const article = req.body;
+    const result = await blogsCollection.insertOne(article);
+    res.send(result);
+}
+
+module.exports.deleteBlog = async(req, res) =>{
+    const {id} = req.params;
+    const query = {_id: new ObjectId(id)};
+    const result = await blogsCollection.deleteOne(query);
+    res.send(result);
 }
