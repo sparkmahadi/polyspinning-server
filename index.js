@@ -14,6 +14,7 @@ const poyMachineSourcesRoute = require('./routes/v1/poyMachineSources.route');
 const poyWinderRoute = require('./routes/v1/poyWinders.route');
 const poyWinderUpdatesRoute = require('./routes/v1/poyWinderUpdates.route');
 const usersRoute = require('./routes/v1/users.route');
+const blogsRoute = require('./routes/v1/blogs.route');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use("/api/v1/dty-process-parameters", dtyProcessParamsRoute)
 app.use("/api/v1/poy-machine-details-from-present-lot", poyMachineSourcesRoute)
 app.use("/api/v1/poy-winders", poyWinderRoute)
 app.use("/api/v1/poy-winder-updates", poyWinderUpdatesRoute)
+app.use("/api/v1/blogs", blogsRoute)
 
 // async function run() {
 //     const dtyMachinesCollection = client.db("polyspinning").collection("dtyMachines");

@@ -1,6 +1,5 @@
-const { format } = require("date-fns");
 const { db } = require("../utils/connectDB");
-const dtyMachineUpdates = db.collection("dtyMachineUpdates")
+const blogsCollection = db.collection("blogs")
 
 module.exports.postDtyMCUpdates = async (req, res) => {
     const { newMCDetails, changedProps } = req.body;
@@ -11,7 +10,7 @@ module.exports.postDtyMCUpdates = async (req, res) => {
     res.send(result);
 }
 
-module.exports.getDtyMCUpdates = async (req, res) => {
-const machines = await dtyMachineUpdates.find({}).toArray();
-res.send(machines);
+module.exports.getBlogs = async (req, res) => {
+const blogs = await blogsCollection.find({}).toArray();
+res.send(blogs);
 }
