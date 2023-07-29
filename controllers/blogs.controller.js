@@ -2,18 +2,16 @@ const { ObjectId } = require("mongodb");
 const { db } = require("../utils/connectDB");
 const blogsCollection = db.collection("blogs")
 
-module.exports.postDtyMCUpdates = async (req, res) => {
-    const { newMCDetails, changedProps } = req.body;
-    newMCDetails.uploadedAt = format(new Date(), "Pp");
-    newMCDetails.changedProps = changedProps;
-    const result = await dtyMachineUpdates.insertOne(newMCDetails);
-    // console.log(result);
-    res.send(result);
+module.exports.getBlogs = async (req, res) => {
+    const blogs = await blogsCollection.find({}).toArray();
+    res.send(blogs);
 }
 
-module.exports.getBlogs = async (req, res) => {
-const blogs = await blogsCollection.find({}).toArray();
-res.send(blogs);
+module.exports.getBlogDetails = async (req, res) => {
+    const { id } = req.params;
+    const query = { _id : new ObjectId(id)};
+    const result = await blogsCollection.findOne(query);
+    res.send(result);
 }
 
 module.exports.postBlog = async (req, res) => {
@@ -22,9 +20,24 @@ module.exports.postBlog = async (req, res) => {
     res.send(result);
 }
 
-module.exports.deleteBlog = async(req, res) =>{
-    const {id} = req.params;
-    const query = {_id: new ObjectId(id)};
+module.exports.updateBlog = async (req, res) => {
+    const article = req.body;
+    const query = { _id: new ObjectId(article._id) };
+    const option = { upsert: false };
+
+    const docToUpdate = {
+        $set: {
+            title: article.title,
+            detail: article.detail
+        }
+    };
+    const result = await blogsCollection.updateOne(query, docToUpdate, option);
+    res.send(result);
+}
+
+module.exports.deleteBlog = async (req, res) => {
+    const { id } = req.params;
+    const query = { _id: new ObjectId(id) };
     const result = await blogsCollection.deleteOne(query);
     res.send(result);
 }

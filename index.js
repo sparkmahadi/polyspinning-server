@@ -42,16 +42,6 @@ app.use("/api/v1/poy-winders", poyWinderRoute)
 app.use("/api/v1/poy-winder-updates", poyWinderUpdatesRoute)
 app.use("/api/v1/blogs", blogsRoute)
 
-// async function run() {
-//     const dtyMachinesCollection = client.db("polyspinning").collection("dtyMachines");
-//     const dtyMcDetailsFromPresentLot = client.db("polyspinning").collection("dtyMcDetailsFromPresentLot");
-//     const poyMcDetailsFromPresentLot = client.db("polyspinning").collection("poyMcDetailsFromPresentLot");
-//     const dtyMachineUpdates = client.db("polyspinning").collection("dtyMachineUpdates");
-//     const poyWinderUpdates = client.db("polyspinning").collection("poyWinderUpdates");
-//     const dtyProcessParams = client.db("polyspinning").collection("dtyProcessParams");
-
-// run().catch(err => console.log(err));
-
 app.get('/', (req, res) => {
   res.send('Polyspinning server is running')
 })

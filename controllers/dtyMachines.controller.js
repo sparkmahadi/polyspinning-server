@@ -208,17 +208,16 @@ module.exports.updateMCFromPresentLot = async (req, res) => {
 }
 
 module.exports.updateMCManually = async (req, res) => {
-    console.log('manually update called');
     const { DTYMCNo, Side } = req.query;
-    const { changedProps } = req.body;
-    console.log("changedProperties", changedProps);
+    const { updatedMC } = req.body;
+    console.log("changedProperties", updatedMC);
     let query = {};
     const option = { upsert: true };
 
     const docToUpdate = { $set: {} };
-    for (let key in changedProps) {
-        for (let n in changedProps[key]) {
-            docToUpdate.$set[`${key}.${n}`] = changedProps[key][n];
+    for (let key in updatedMC) {
+        for (let n in updatedMC[key]) {
+            docToUpdate.$set[`${key}.${n}`] = updatedMC[key][n];
         }
     }
     docToUpdate.$set["updatedAt.manually"] = format(new Date(), "Pp");
@@ -295,7 +294,6 @@ module.exports.updateOtherMC = async (req, res) =>{
     docToUpdate.$set[`updatedAt.fromMC${UpdatesFrom}`] = format(new Date(), "Pp");
 
     const result = await dtyMachinesCollection.updateOne(query, docToUpdate, option);
-    console.log(result);
     res.send(result);
 }
 
@@ -303,6 +301,5 @@ module.exports.deleteDtyMC = async(req, res) =>{
     const {id} = req.params;
     const query = {_id: new ObjectId(id)};
     const result = await dtyMachinesCollection.deleteOne(query);
-    console.log(result);
     res.send(result);
 }

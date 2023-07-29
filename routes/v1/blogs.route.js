@@ -5,8 +5,11 @@ const router = express.Router();
 
 router.route("/")
 .get(blogsController.getBlogs)
-.post(blogsController.postBlog);
+.post(blogsController.postBlog)
+.put(blogsController.updateBlog);
 
-router.route("/:id").delete(blogsController.deleteBlog);
+router.route("/:id")
+.get(blogsController.getBlogDetails)
+.delete(blogsController.deleteBlog);
 
 module.exports = router;
